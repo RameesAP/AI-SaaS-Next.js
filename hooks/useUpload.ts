@@ -4,7 +4,7 @@ import { db, storage } from "@/firebase";
 import { useUser } from "@clerk/nextjs";
 import { doc, setDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-// import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -22,7 +22,7 @@ function useUpload() {
   const [fileId, setFileId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const { user } = useUser();
-//   const router = useRouter();
+  const router = useRouter();
 
   const handleUpload = async (file: File) => {
     if (!file || !user) return;
@@ -30,6 +30,7 @@ function useUpload() {
     // todo free/pro limitaions...
 
     const fileIdToUploadTo = uuidv4();
+
     const storageRef = ref(
       storage,
       `users/${user.id}/files/${fileIdToUploadTo}`
