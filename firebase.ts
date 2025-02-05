@@ -14,15 +14,7 @@ const firebaseConfig = {
   measurementId: "G-EP477DVYVW",
 };
 
-// eth second try ann       eth remove chyaam
-// const firebaseConfig = {
-//   apiKey: "AIzaSyCNKhvek5DKeExIOtGzPJ2EOmUmy0K9YoY",
-//   authDomain: "chat-with-pdf2.firebaseapp.com",
-//   projectId: "chat-with-pdf2",
-//   storageBucket: "chat-with-pdf2.firebasestorage.app",
-//   messagingSenderId: "333600166785",
-//   appId: "1:333600166785:web:3c9ed09f60891da3720e80"
-// };
+
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
