@@ -7,7 +7,9 @@ function ChatToFilePage({
     id: string;
   };
 }) {
-  return <div>ChatToFilePage : {id}</div>;
+  return(
+  <div>ChatToFilePage : {id}</div>
+  )
 }
 
 export default ChatToFilePage;
