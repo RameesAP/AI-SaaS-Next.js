@@ -12,3 +12,6 @@ export async function generateEmbeddings(docId: string) {
   revalidatePath("/dashboard");
   return { completed: true };
 }
+
+
+
