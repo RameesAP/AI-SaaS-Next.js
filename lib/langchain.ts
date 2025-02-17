@@ -49,6 +49,20 @@ export async function generateDocs(docId: string) {
 
   //load the pdf into a pdfdocument object;
   const data = await response.blob();
+
+  //load the pdf document from the specified path
+  console.log(" --- Loading PDF document ... ---");
+
+  const loader = new PDFLoader(data);
+  const docs = await loader.load();
+
+  //split the loaded document into smaller parts for easier processing
+  console.log(" --- Splitting the document into smaller parts ... ---");
+  const splitter = new RecursiveCharacterTextSplitter();
+
+  const splitDocs = await splitter.splitDocuments(docs);
+  console.log(` --- Split into ${splitDocs.length} parts ---`);
+  return splitDocs;
 }
 
 async function namespaceExists(
@@ -89,7 +103,24 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
 
     return pineconeVectorStore;
   } else {
-    //if namespace does not exist, download the pdf from firestore via the stored download url  & genrate the embeddings and store them in the pinecone vectore store
+    //if namespace does not exist, download the pdf from firestore via the stored download url  & genrate the
+    // embeddings and store them in the pinecone vectore store
     const splitDocs = await generateDocs(docId);
+
+    console.log(
+      `--- storing the embeddings in namespace ${docId} in the ${indexName} pinecone vector store... ---`
+    );
+
+    pineconeVectorStore = await PineconeStore.fromDocuments(
+      splitDocs,
+      embeddings,
+      {
+        pineconeIndex: index,
+        namespace: docId,
+      }
+    );
+    return pineconeVectorStore;
   }
+
+  
 }
