@@ -64,11 +64,12 @@ function useUpload() {
           createdAt: new Date(),
         });
 
+        
         setStatus(StatusText.GENERATING);
 
         //Generate embeddings 
         await generateEmbeddings(fileIdToUploadTo);
-        
+
  
         setFileId(fileIdToUploadTo)
       }
