@@ -95,7 +95,7 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
     console.log(
       `-----Namespace  ${docId} already exists, reusing existing embeddings-----`
     );
-
+//this type error
     pineconeVectorStore = await PineconeStore.fromExistingIndex(embeddings, {
       pineconeIndex: index,
       namespace: docId,
@@ -122,5 +122,5 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
     return pineconeVectorStore;
   }
 
-  
+
 }
