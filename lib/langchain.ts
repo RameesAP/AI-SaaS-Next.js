@@ -71,7 +71,7 @@ async function namespaceExists(
 ) {
   if (namespace === null) throw new Error("No namespace value provided.");
   const { namespaces } = await index.describeIndexStats();
-  return namespaces?.[namespace]! == undefined;
+  return namespaces?.[namespace] !== undefined;
 }
 
 export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
@@ -84,7 +84,7 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
   let pineconeVectorStore;
 
   //Generate embeddings { numerical representations} for the split document
-  console.log(" ---- Generating embeddings for the split document ---- ");
+  console.log(" ---- Generating embeddings.... ---- ");
 
   const embeddings = new OpenAIEmbeddings();
 
@@ -93,7 +93,7 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
 
   if (namespaceAlreadyExists) {
     console.log(
-      `-----Namespace  ${docId} already exists, reusing existing embeddings-----`
+      `-----Namespace  ${docId} already exists, reusing existing embeddings...-----`
     );
 //this type error
     pineconeVectorStore = await PineconeStore.fromExistingIndex(embeddings, {
