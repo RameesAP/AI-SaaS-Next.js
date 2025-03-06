@@ -1,16 +1,38 @@
-"use client"; // Mark this as a Client Component
+import PdfView from "@/components/PdfView";
+import { adminDb } from "@/firebaseAdmin";
+import { auth } from "@clerk/nextjs/server";
 
-import React from "react";
-import { useParams } from "next/navigation";
+async function ChatToFilePage({
+  params: { id },
+}: {
+  params: {
+    id: string;
+  };
+}) {
+  await auth.protect();
+  const { userId } = await auth();
 
-function ChatToFilePage() {
-  const { id } = useParams(); // Get dynamic id
+  const ref = await adminDb
+    .collection("users")
+    .doc(userId!)
+    .collection("files")
+    .doc(id)
+    .get();
 
-  if (!id) {
-    return <div>Loading...</div>; // Handle case when id is not yet available
-  }
+  return (
+    <div className="grid lg:grid-cols-5 h-full overflow-hidden border border-red-500">
+      {/* {right} */}
+      <div className="col-span-5 lg:col-span-2 overflow-y-auto">
+        {/* {chat side} */}
+      </div>
+      {/* {left} */}
+      <div className="col-span-5 lg:col-span-3 bg-gray-100 border-r-2 lg:border-indigo-600 lg:-order-1 overflow-auto">
+        {/* pdf view */}
 
-  return <div>ChatToFilePage: {id}</div>;
+        <PdfView url={url}/>
+      </div>
+    </div>
+  );
 }
 
 export default ChatToFilePage;
