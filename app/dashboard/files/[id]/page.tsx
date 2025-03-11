@@ -3,15 +3,26 @@ import PdfView from "@/components/PdfView";
 import { adminDb } from "@/firebaseAdmin";
 import { auth } from "@clerk/nextjs/server";
 
-async function ChatToFilePage({
+async function ChatToFilePage(
+  {
   params: { id },
 }: {
   params: {
     id: string;
   };
-}) {
+}
+
+// { params }: { params: { id?: string } }
+) {
   await auth.protect();
   const { userId } = await auth();
+
+  // if (!params || !params.id) {
+  //   console.error("Error: Invalid or missing file ID", params);
+  //   return <div>Error: Invalid File ID</div>;
+  // }
+
+  // const id =  params.id;
 
   const ref = await adminDb
     .collection("users")
