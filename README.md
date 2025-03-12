@@ -1,13 +1,25 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 
+
+
 How Everything Works Together
+
 User uploads a PDF → Stored in Firebase.
+
 PDF is loaded and split → PDFLoader, RecursiveCharacterTextSplitter.
+
 Text is converted into embeddings → CohereEmbeddings. or openaiembeddings
+
 Embeddings are stored in Pinecone → PineconeStore.
+
 User asks a question → AI retrieves relevant document sections from Pinecone.
+
 ChatGroq (Llama 3.3-70B) generates a response using the retrieved data. or openai-40 
+
+
+
+
 
 ## Getting Started
 
