@@ -37,7 +37,7 @@ async function ChatToFilePage(
 
     
     <div className="grid lg:grid-cols-5 h-full overflow-hidden border border-red-500">
-      {/* {right} */}
+      {/* {right}  */}
       <div className="col-span-5 lg:col-span-2 overflow-y-auto">
         {/* {chat side} */}
       </div>
