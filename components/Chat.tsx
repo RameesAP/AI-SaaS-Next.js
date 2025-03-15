@@ -23,13 +23,34 @@ const Chat = ({ id }: { id: string }) => {
   const [message, setMessage] = useState<Message[]>([]);
   const [isPending, setIsPending] = useTransition();
 
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <div className=" flex flex-col h-full overflow-scroll">
       {/* {chat} */}
 
       <div className="flex-1 w-full">{/* chat message */}</div>
 
-      <form action=""></form>
+      <form
+        onSubmit={handleSubmit}
+        className=" flex sticky bottom-0 space-x-2 p-2 bg-indigo-600/75"
+      >
+        <Input
+          placeholder="Ask a Question"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+
+        <Button type="submit" disabled={!input || isPending}>
+          {isPending ? (
+            <Loader2Icon className="animate-spin text-indigo-600" />
+          ) : (
+            "Ask"
+          )}
+        </Button>
+      </form>
     </div>
   );
 };
