@@ -8,9 +8,10 @@ import { useCollection } from "react-firebase-hooks/firestore";
 import { useUser } from "@clerk/nextjs";
 import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase";
+import { askQuestion } from "@/actions/askQustion";
 
 export type Message = {
-  id: string;
+  id?: string;
   role: "human" | "ai" | "placeholder";
   message: string;
   createdAt: Date;
@@ -21,10 +22,62 @@ const Chat = ({ id }: { id: string }) => {
 
   const [input, setInput] = useState("");
   const [message, setMessage] = useState<Message[]>([]);
-  const [isPending, setIsPending] = useTransition();
+  const [isPending, startTransition] = useTransition();
+
+  const [snapshot, loading, error] = useCollection(
+    user &&
+      query(
+        collection(db, "users", user?.id, "files", id, "chat"),
+        orderBy("createdAt", "asc")
+      )
+  );
+
+  useEffect(() => {
+    if (!snapshot) return;
+
+    console.log("Update snapshot", snapshot.docs);
+
+    //get second last message to check if the AI is thinking
+    // const  lastMessage = message.pop();
+  }, [snapshot]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    const q = input;
+
+    setInput("");
+
+    //optimistic ui update
+    setMessage((prev) => [
+      ...prev,
+      {
+        role: "human",
+        message: q,
+        createdAt: new Date(),
+      },
+      {
+        role: "ai",
+        message: "Thinking...",
+        createdAt: new Date(),
+      },
+    ]);
+
+    startTransition(async () => {
+      const { success, message } = await askQuestion(id, q);
+
+      if (!success) {
+        setMessage((prev) =>
+          prev.slice(0, prev.length - 1).concat([
+            {
+              role: "ai",
+              message: `Whoops... ${message}`,
+              createdAt: new Date(),
+            },
+          ])
+        );
+      }
+    });
   };
 
   return (

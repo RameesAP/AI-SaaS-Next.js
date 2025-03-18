@@ -17,12 +17,10 @@ import { Index, RecordMetadata } from "@pinecone-database/pinecone";
 import { adminDb } from "../firebaseAdmin";
 import { auth } from "@clerk/nextjs/server";
 
-
 const model = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
   modelName: "llama-3.3-70b-versatile",
 });
-
 
 //✅✅✅
 // const model = new ChatOpenAI({
@@ -34,9 +32,33 @@ const model = new ChatGroq({
 //chatwithpdf is takes 1536 dimensions if you have open i key then use this
 // export const indexName = "chatwithpdf";
 
-
 // chatwithpdf2 is takes 1024 dimensions
 export const indexName = "chatwithpdf2";
+
+async function fetchMessageFromDB(docId: string) {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("user not found");
+  }
+
+  console.log(" --- FETCHING CHAT HISTORY FROM THE FIRESTORE DATABASE --- ");
+  //get last 6 messages from the database
+  const chats = await adminDb
+    .collection("users")
+    .doc(userId)
+    .collection("files")
+    .doc(docId)
+    .collection("chat")
+    .orderBy("createdAt", "desc")
+    // .limit(6)
+    .get();
+
+  const chatHistory = chats.docs.map((doc) =>
+    doc.data().role === "human"
+      ? new HumanMessage(doc.data().message)
+      : new AIMessage(doc.data().message)
+  );
+}
 
 export async function generateDocs(docId: string) {
   const { userId } = await auth();
@@ -103,17 +125,14 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
   //Generate embeddings { numerical representations} for the split document
   console.log(" ---- Generating embeddings.... ---- ");
 
-//✅✅✅
-//if you have the openai api key, you can use the openai embeddings
+  //✅✅✅
+  //if you have the openai api key, you can use the openai embeddings
   // const embeddings = new OpenAIEmbeddings();
-
 
   const embeddings = new CohereEmbeddings({
     apiKey: process.env.COHERE_API_KEY, // Use Cohere API Key
-    model: "embed-english-v3.0", 
+    model: "embed-english-v3.0",
   });
-
-
 
   const index = await pineconeClient.index(indexName);
   const namespaceAlreadyExists = await namespaceExists(index, docId);
@@ -122,7 +141,7 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
     console.log(
       `-----Namespace  ${docId} already exists, reusing existing embeddings...-----`
     );
-//this type error
+    //this type error
     pineconeVectorStore = await PineconeStore.fromExistingIndex(embeddings, {
       pineconeIndex: index,
       namespace: docId,
@@ -148,6 +167,22 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
     );
     return pineconeVectorStore;
   }
-
-
 }
+
+const generateLangchainCompletion = async (docId: string, question: string) => {
+  let pineconeVectorStore;
+
+  pineconeVectorStore = await generateEmbeddingsInPineconeVectorStore(docId);
+
+  if (!pineconeVectorStore) {
+    throw new Error("Pinecone Vector Store not found");
+  }
+
+  //create a retriver to search through the vector store
+
+  console.log(" --- CREATE A RETRIEVER --- ");
+  const retriver = pineconeVectorStore.asRetriever();
+
+  //fetch the chat history from the database
+  const chatHistory = await fetchMessageFromDB(docId);
+};
