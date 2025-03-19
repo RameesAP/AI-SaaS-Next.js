@@ -58,6 +58,14 @@ async function fetchMessageFromDB(docId: string) {
       ? new HumanMessage(doc.data().message)
       : new AIMessage(doc.data().message)
   );
+
+  console.log(
+    `  ---- fetched last ${chatHistory.length} messages successfully ----`
+  );
+
+  console.log(chatHistory.map((msg) => msg.content.toString()));
+
+  return chatHistory;
 }
 
 export async function generateDocs(docId: string) {
@@ -181,8 +189,44 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
   //create a retriver to search through the vector store
 
   console.log(" --- CREATE A RETRIEVER --- ");
-  const retriver = pineconeVectorStore.asRetriever();
+  const retriever = pineconeVectorStore.asRetriever();
 
   //fetch the chat history from the database
   const chatHistory = await fetchMessageFromDB(docId);
+
+  //Define the prompt template for genarating search queries based on conversation history
+
+  console.log(" --- DEFINE  A PROMPT TEMPLATE --- ");
+
+  const historyAwarePrompt = ChatPromptTemplate.fromMessages([
+    ...chatHistory, //insret the actual chat history here
+
+    ["user", "{input}"],
+    [
+      "user",
+      "Given the above conversation genrate a search query to look up in order to get information relevant to the conversation",
+    ],
+  ]);
+
+  //create a history-aware retrivee chain that uses the model , retriever, and prompt
+  console.log(" --- create a history-aware retriver chain --- ");
+
+  const historyAwareRetriever = await createHistoryAwareRetriever({
+    llm: model,
+    retriever,
+    rephrasePrompt: historyAwarePrompt,
+  });
+
+  //Define a prompt template for answering questions based on retrieved context
+
+  console.log(" --- DEFINE A PROMPT TEMPLATE FOR ANSWERING QUESTIONS  --- ");
+  const historyAwareRetrieverlPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      "Answer the user's questions based on the below context:\n\n{context}",
+    ],
+
+    ...chatHistory,
+    ["user", "{input}"],
+  ]);
 };
