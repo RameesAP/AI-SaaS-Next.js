@@ -230,3 +230,4 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
     ["user", "{input}"],
   ]);
 };
+
