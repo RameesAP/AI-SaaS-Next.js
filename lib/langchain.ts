@@ -211,7 +211,7 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
   //create a history-aware retrivee chain that uses the model , retriever, and prompt
   console.log(" --- create a history-aware retriver chain --- ");
 
-  const historyAwareRetriever = await createHistoryAwareRetriever({
+  const historyAwareRetrieverChain = await createHistoryAwareRetriever({
     llm: model,
     retriever,
     rephrasePrompt: historyAwarePrompt,
@@ -229,6 +229,35 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
     ...chatHistory,
     ["user", "{input}"],
   ]);
+
+  //create a chain to combine the retrived document into a coherent response
+
+  console.log(" --- CREATE A DOCUMENTS COMBINING CHAIN... --- ");
+
+  const historyAwareCombineDocsChain = await createStuffDocumentsChain({
+    llm: model,
+    prompt: historyAwareRetrieverlPrompt,
+  });
+
+  //create the main retrival chain that combaine the history-aware retriever and document combining chains
+  console.log(" --- CREATEING THE MAIN RETRIVAL CHAIN... --- ");
+
+  const conversationalRetrivalChain = await createRetrievalChain({
+    retriever: historyAwareRetrieverChain,
+    combineDocsChain: historyAwareCombineDocsChain,
+  });
+
+  console.log(" --- RUNNING THE CHAIN WITH A SAMPLE CONVERSATION...  --- ");
+  const reply = await conversationalRetrivalChain.invoke({
+    chat_history: chatHistory,
+    input: question,
+  });
+
+  //print the result to the console
+  console.log(reply.answer);
+
+  return reply.answer;
 };
 
-
+//Export the model and the run function
+export { model, generateLangchainCompletion };

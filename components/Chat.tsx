@@ -21,7 +21,7 @@ const Chat = ({ id }: { id: string }) => {
   const { user } = useUser();
 
   const [input, setInput] = useState("");
-  const [message, setMessage] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isPending, startTransition] = useTransition();
 
   const [snapshot, loading, error] = useCollection(
@@ -38,6 +38,27 @@ const Chat = ({ id }: { id: string }) => {
     console.log("Update snapshot", snapshot.docs);
 
     //get second last message to check if the AI is thinking
+
+    const lastMessage = messages.pop();
+
+    if (lastMessage?.role == "ai" && lastMessage.message === "Thinking...") {
+      //return as this is a dummy place holder message
+      return;
+    }
+
+    const newMessages = snapshot.docs.map((doc) => {
+      const { role, message, createdAt } = doc.data();
+
+      return {
+        id: doc.id,
+        role,
+        message,
+        createdAt: createdAt.toDate(),
+      };
+    });
+    setMessages(newMessages);
+
+    //get second last message to check if the AI is thinking
     // const  lastMessage = message.pop();
   }, [snapshot]);
 
@@ -49,7 +70,7 @@ const Chat = ({ id }: { id: string }) => {
     setInput("");
 
     //optimistic ui update
-    setMessage((prev) => [
+    setMessages((prev) => [
       ...prev,
       {
         role: "human",
@@ -67,7 +88,7 @@ const Chat = ({ id }: { id: string }) => {
       const { success, message } = await askQuestion(id, q);
 
       if (!success) {
-        setMessage((prev) =>
+        setMessages((prev) =>
           prev.slice(0, prev.length - 1).concat([
             {
               role: "ai",
@@ -84,7 +105,15 @@ const Chat = ({ id }: { id: string }) => {
     <div className=" flex flex-col h-full overflow-scroll">
       {/* {chat} */}
 
-      <div className="flex-1 w-full">{/* chat message */}</div>
+      <div className="flex-1 w-full">
+        {/* chat message */}
+
+        {messages.map((message) => (
+          <div key={message.id}>
+            <p>{message.message}</p>
+          </div>
+        ))}
+      </div>
 
       <form
         onSubmit={handleSubmit}
