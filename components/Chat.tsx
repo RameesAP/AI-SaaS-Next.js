@@ -9,6 +9,7 @@ import { useUser } from "@clerk/nextjs";
 import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase";
 import { askQuestion } from "@/actions/askQustion";
+import { create } from "domain";
 
 export type Message = {
   id?: string;
@@ -24,6 +25,8 @@ const Chat = ({ id }: { id: string }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isPending, startTransition] = useTransition();
 
+  const bottomOfChatRef = useRef<HTMLDivElement>(null);
+
   const [snapshot, loading, error] = useCollection(
     user &&
       query(
@@ -31,6 +34,12 @@ const Chat = ({ id }: { id: string }) => {
         orderBy("createdAt", "asc")
       )
   );
+  useEffect(() => {
+    bottomOfChatRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [messages]);
 
   useEffect(() => {
     if (!snapshot) return;
@@ -108,11 +117,42 @@ const Chat = ({ id }: { id: string }) => {
       <div className="flex-1 w-full">
         {/* chat message */}
 
-        {messages.map((message) => (
-          <div key={message.id}>
-            <p>{message.message}</p>
+        {loading ? (
+          <div className="flex items-center justify-center">
+            <Loader2Icon className="animate-spin h-20 w-20 text-indigo-600 mt-20" />
           </div>
-        ))}
+        ) : (
+          <div className="">
+            {messages.length === 0 && (
+              <ChatMessage
+                key={"placeholder"}
+                message={{
+                  role: "ai",
+                  message: "ASk me anything about the document",
+                  createdAt: new Date(),
+                }}
+              />
+            )}
+
+            {messages.map((message, index) => (
+              <ChatMessage key={index} message={message} />
+            ))}
+
+            <div ref={bottomOfChatRef} />
+            {/* {messages.length === 0 && (
+              <div className="flex items-center justify-center">
+                <p className="text-gray-500">No messages yet</p>
+              </div>
+            )} */}
+            {/* {loading && <Loader2Icon className="animate-spin h-20 w-20 text-indigo-600 mt-20" />} */}
+
+            {/* {messages.map((message) => (
+              <div key={message.id}>
+                <p>{message.message}</p>
+              </div>
+            ))} */}
+          </div>
+        )}
       </div>
 
       <form
