@@ -9,7 +9,8 @@ import { useUser } from "@clerk/nextjs";
 import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase";
 import { askQuestion } from "@/actions/askQustion";
-import { create } from "domain";
+// import { create } from "domain";
+import ChatMessage from "./ChatMessage";
 
 export type Message = {
   id?: string;
@@ -27,7 +28,7 @@ const Chat = ({ id }: { id: string }) => {
 
   const bottomOfChatRef = useRef<HTMLDivElement>(null);
 
-  const [snapshot, loading, error] = useCollection(
+  const [snapshot, loading] = useCollection(
     user &&
       query(
         collection(db, "users", user?.id, "files", id, "chat"),
@@ -41,35 +42,62 @@ const Chat = ({ id }: { id: string }) => {
     });
   }, [messages]);
 
+  // useEffect(() => {
+  //   if (!snapshot) return;
+
+  //   console.log("Update snapshot", snapshot.docs);
+
+  //   //get second last message to check if the AI is thinking
+
+  //   const lastMessage = messages.pop();
+
+  //   if (lastMessage?.role == "ai" && lastMessage.message === "Thinking...") {
+  //     //return as this is a dummy place holder message
+  //     return;
+  //   }
+
+  //   const newMessages = snapshot.docs.map((doc) => {
+  //     const { role, message, createdAt } = doc.data();
+
+  //     return {
+  //       id: doc.id,
+  //       role,
+  //       message,
+  //       createdAt: createdAt.toDate(),
+  //     };
+  //   });
+  //   setMessages(newMessages);
+
+  //   //get second last message to check if the AI is thinking
+  //   // const  lastMessage = message.pop();
+  // }, [snapshot]);
+
+ // old one have issse in vercel side
+
   useEffect(() => {
-    if (!snapshot) return;
+  if (!snapshot) return;
 
-    console.log("Update snapshot", snapshot.docs);
+  console.log("Update snapshot", snapshot.docs);
 
-    //get second last message to check if the AI is thinking
+  const newMessages = snapshot.docs.map((doc) => {
+    const { role, message, createdAt } = doc.data();
 
-    const lastMessage = messages.pop();
+    return {
+      id: doc.id,
+      role,
+      message,
+      createdAt: createdAt.toDate(),
+    };
+  });
 
-    if (lastMessage?.role == "ai" && lastMessage.message === "Thinking...") {
-      //return as this is a dummy place holder message
-      return;
-    }
+  // Check if the last message is "Thinking..." and skip update if so
+  const lastMessage = newMessages[newMessages.length - 1];
+  if (lastMessage?.role === "ai" && lastMessage.message === "Thinking...") {
+    return;
+  }
 
-    const newMessages = snapshot.docs.map((doc) => {
-      const { role, message, createdAt } = doc.data();
-
-      return {
-        id: doc.id,
-        role,
-        message,
-        createdAt: createdAt.toDate(),
-      };
-    });
-    setMessages(newMessages);
-
-    //get second last message to check if the AI is thinking
-    // const  lastMessage = message.pop();
-  }, [snapshot]);
+  setMessages(newMessages);
+}, [snapshot]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -122,13 +150,13 @@ const Chat = ({ id }: { id: string }) => {
             <Loader2Icon className="animate-spin h-20 w-20 text-indigo-600 mt-20" />
           </div>
         ) : (
-          <div className="">
+          <div className="p-5">
             {messages.length === 0 && (
               <ChatMessage
                 key={"placeholder"}
                 message={{
                   role: "ai",
-                  message: "ASk me anything about the document",
+                  message: "Ask me anything about the document",
                   createdAt: new Date(),
                 }}
               />

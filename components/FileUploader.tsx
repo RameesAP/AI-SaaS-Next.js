@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import type { JSX } from "react";
 
 import {
-  CheckCircle,
+  // CheckCircle,
   CheckCircleIcon,
   //   CheckCircleIcon,
   CircleArrowDown,
@@ -28,16 +28,19 @@ const FileUploader = () => {
     }
   }, [fileId, router]);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // console.log(acceptedFiles);
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      // console.log(acceptedFiles);
 
-    const file = acceptedFiles[0];
-    if (file) {
-      await handleUpload(file);
-    } else {
-      //toast...
-    }
-  }, []);
+      const file = acceptedFiles[0];
+      if (file) {
+        await handleUpload(file);
+      } else {
+        //toast...
+      }
+    },
+    [handleUpload]
+  );
 
   const statusIcons: {
     [key in StatusText]: JSX.Element;
@@ -75,7 +78,8 @@ const FileUploader = () => {
             }`}
             role="progressbar"
             style={{
-              //@ts-ignore
+              
+              // @ts-expect-error idk
               "--value": progress,
               "--size": "12rem",
               "--thickness": "1.3rem",
@@ -84,11 +88,13 @@ const FileUploader = () => {
             {progress} %
           </div>
           {
-            //@ts-ignore
+           
+            // @ts-expect-error idk
             statusIcons[status!]
           }
           {
-            //@ts-ignore
+           
+        
           }
           <p className="text-indigo-600 animate-pulse">{status}</p>
         </div>
