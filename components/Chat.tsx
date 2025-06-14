@@ -77,7 +77,7 @@ const Chat = ({ id }: { id: string }) => {
   useEffect(() => {
   if (!snapshot) return;
 
-  console.log("Update snapshot", snapshot.docs);
+  console.log("Update snapshott", snapshot.docs);
 
   const newMessages = snapshot.docs.map((doc) => {
     const { role, message, createdAt } = doc.data();
