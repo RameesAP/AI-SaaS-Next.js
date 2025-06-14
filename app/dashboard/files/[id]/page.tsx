@@ -12,16 +12,24 @@ async function ChatToFilePage(
   //     id: string;
   //   };
   // }
-  props: { params: { id: string } }
-
+  // props: { params: { id: string } }
+{
+  params,
+}: {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
 ) {
   await auth.protect();
   const { userId } = await auth();
 
+  const { id } = await params;
+
   // const { id } = params;
   // const { id } = await props.params;
-  const { id } = props.params;
+  // const { id } =  props.params;
   // const id =   params.id;
   // const id =   Propid;
 
